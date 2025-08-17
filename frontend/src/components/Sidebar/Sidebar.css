@@ -1,0 +1,64 @@
+.sidebar {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    background-color: #eaf4e5;
+    padding: 10px;
+}
+
+.sidebar.open {
+    width: 18%;
+}
+
+.sidebar.collapsed {
+    width:50px;
+    padding: 10px 5px;
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #165f47;
+    margin-bottom: 20px;
+}
+
+.sidebar-header button {
+    outline: none;
+    color: #165f47;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.sidebar-actions {
+    display: flex;
+    flex-direction: column;
+    gap:10px;
+    margin-bottom: 20px;
+}
+
+.action-btn {
+    display: flex;
+    gap:10px;
+    align-items: center;
+    width: 100%;
+    border-radius: 6px;
+    padding: 5px;
+}
+
+.recent-columns {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.recent-item button{
+    width: 100%;
+    text-align: left;
+    padding: 2px;
+}
