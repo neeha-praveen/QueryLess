@@ -1,6 +1,10 @@
 .app {
   width: 100%;
+  display: flex;
 }
+
 .main-body {
   display: flex;
+  flex:1;
+  flex-direction: column;
 }
