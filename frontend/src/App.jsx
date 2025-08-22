@@ -3,6 +3,7 @@ import './App.css'
 import Navbar from './components/Navbar/Navbar'
 import Sidebar from './components/Sidebar/Sidebar'
 import Header from './components/Header/Header'
+import Chat from './components/Chat/Chat'
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
       <Sidebar/>
       <div className="main-body">
         <Header/>
+        <Chat/>
       </div>
     </div>
   )
