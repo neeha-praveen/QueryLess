@@ -1,6 +1,7 @@
 import './Chat.css'
 import React, { useRef, useState } from 'react'
 import { ArrowUp } from 'lucide-react'
+import ChatMessage from './ChatMessage';
 
 const Chat = () => {
     const [hasPrompts, setHasPrompts] = useState(false);
@@ -8,6 +9,10 @@ const Chat = () => {
     const [inputValue, setInputValue] = useState('');
     const inputRef = useRef();
     const [chatHistory, setChatHistory] = useState([]);
+
+    const generateBotResponse = (history) => {
+        console.log(history);
+    }
 
     const handleGenerate = () => {
         if (!firstPrompt) {
@@ -23,7 +28,16 @@ const Chat = () => {
             return;
         }
         inputRef.current.value = ""
-        setChatHistory(history=>[...history,{role:"user",text:userMessage}]);
+
+        // update chat history with new user message
+        setChatHistory(history => [...history, { role: "user", text: userMessage }]);
+
+        // bot message
+        setTimeout(() => {
+            setChatHistory((history) => [...history, { role: "model", text: "working on it ..." }]);
+            // call the function to generate the response
+            generateBotResponse([...chatHistory, { role: "user", text: userMessage }]);
+        }, 600);
     }
 
     return (
@@ -51,20 +65,22 @@ const Chat = () => {
                                     {firstPrompt}
                                 </p>
                             </div>
+                            {chatHistory.map((chat, index) => (
+                                <ChatMessage key={index} chat={chat} />
+                            ))}
                         </div>
                     </div>
                     <div className="chat-footer">
-                        <form 
-                            action="" 
-                            className="chat-form" 
+                        <form
+                            action=""
+                            className="chat-form"
                             onSubmit={handleFormSubmit}
-                            setChatHistory={setChatHistory}
                         >
-                            <input 
-                                type="text" 
-                                placeholder='chat' 
-                                className="message-input" 
-                                required 
+                            <input
+                                type="text"
+                                placeholder='chat'
+                                className="message-input"
+                                required
                                 ref={inputRef}
                             />
                             <button className='send-btn'><ArrowUp /></button>
