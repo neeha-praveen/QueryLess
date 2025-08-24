@@ -6,6 +6,8 @@
     height: 50px;
     width: 100%;
     align-items: center;
+    position: fixed;
+    background-color: #fff;
 }
 
 h1 {

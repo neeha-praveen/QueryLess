@@ -1,10 +1,14 @@
 .app {
   width: 100%;
   display: flex;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .main-body {
   display: flex;
   flex:1;
   flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
 }
