@@ -10,7 +10,6 @@ function App() {
     <div className='app'>
       <Sidebar/>
       <div className="main-body">
-        <Header/>
         <Chat/>
       </div>
     </div>
