@@ -5,7 +5,9 @@ const Header = ({ dbCreated, onWorkWithDb }) => {
   return (
     <div className='header'>
         <h1>QueryLess</h1>
-        <button>Work with the db</button>
+        {dbCreated && (
+          <button>Work with the db</button>
+        )}
     </div>
   )
 }

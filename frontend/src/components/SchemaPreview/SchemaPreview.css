@@ -1,0 +1,39 @@
+.schema-preview {
+    margin-top: 12px; 
+    border: 1px solid #ccc; 
+    border-radius: 8px; 
+    padding: 8px;
+    background-color: white;
+    font-size: 12px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th {
+    border: 1px solid #ddd;
+    padding: 6px;
+    text-align: left;
+}
+
+td {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+tr {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+.approve-btn {
+    margin-top: 10px;
+    padding: 6px 12px;
+    background: #165f47;
+    color:white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}

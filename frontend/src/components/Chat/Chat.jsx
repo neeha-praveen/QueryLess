@@ -3,6 +3,7 @@ import React, { useRef, useState, useEffect } from 'react'
 import { ArrowUp } from 'lucide-react'
 import ChatMessage from './ChatMessage';
 import Header from '../Header/Header'
+import SchemaPreview from '../SchemaPreview/SchemaPreview';
 
 const Chat = () => {
     const [hasPrompts, setHasPrompts] = useState(false);
@@ -13,6 +14,19 @@ const Chat = () => {
     const chatEndRef = useRef(null);
     const [dbCreated, setDbCreated] = useState(false);
 
+
+    const sampleSchema = {
+        tableName: "students",
+        columns: [
+            { name: "id_no", type: "number" },
+            { name: "name", type: "string" },
+            { name: "dob", type: "date" },
+            { name: "course", type: "string" },
+            { name: "graduating_year", type: "number" },
+            { name: "starting_year", type: "number" },
+        ]
+    };
+
     // when new msg comes, it should scroll automatically
     useEffect(() => {
         if (chatEndRef.current) {
@@ -21,22 +35,28 @@ const Chat = () => {
     }, [chatHistory]);
 
     const generateBotResponse = (history) => {
-        console.log(history);
-    }
+        return {
+            role: "model",
+            text: "Here's the proposed schema:",
+            schema: sampleSchema,
+            onConfirm: () => {
+                setChatHistory(prev => [
+                    ...prev,
+                    { role: "model", text: "Database created" }
+                ]);
+                setDbCreated(true);
+            }
+        };
+    };
 
     const sendUserMessage = (message) => {
-        // update chat history with new user message
-        setChatHistory(history => [...history, { role: "user", text: message }]);
+        setChatHistory(prev => [...prev, { role: "user", text: message }]);
 
-        // bot message
         setTimeout(() => {
-            setChatHistory(prev => {
-                const newHistory = [...prev, { role: "model", text: "working on it ..." }];
-                generateBotResponse(newHistory);
-                return newHistory;
-            });
+            const botMsg = generateBotResponse();
+            setChatHistory(prev => [...prev, botMsg]);
         }, 600);
-    }
+    };
 
     const handleGenerate = () => {
         if (!firstPrompt) {
