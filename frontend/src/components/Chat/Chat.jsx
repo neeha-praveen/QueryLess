@@ -1,7 +1,8 @@
 import './Chat.css'
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import { ArrowUp } from 'lucide-react'
 import ChatMessage from './ChatMessage';
+import Header from '../Header/Header'
 
 const Chat = () => {
     const [hasPrompts, setHasPrompts] = useState(false);
@@ -9,14 +10,38 @@ const Chat = () => {
     const [inputValue, setInputValue] = useState('');
     const inputRef = useRef();
     const [chatHistory, setChatHistory] = useState([]);
+    const chatEndRef = useRef(null);
+    const [dbCreated, setDbCreated] = useState(false);
+
+    // when new msg comes, it should scroll automatically
+    useEffect(() => {
+        if (chatEndRef.current) {
+            chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [chatHistory]);
 
     const generateBotResponse = (history) => {
         console.log(history);
     }
 
+    const sendUserMessage = (message) => {
+        // update chat history with new user message
+        setChatHistory(history => [...history, { role: "user", text: message }]);
+
+        // bot message
+        setTimeout(() => {
+            setChatHistory(prev => {
+                const newHistory = [...prev, { role: "model", text: "working on it ..." }];
+                generateBotResponse(newHistory);
+                return newHistory;
+            });
+        }, 600);
+    }
+
     const handleGenerate = () => {
         if (!firstPrompt) {
             setFirstPrompt(inputValue);
+            sendUserMessage(inputValue);
         }
         setHasPrompts(true);
     };
@@ -28,20 +53,13 @@ const Chat = () => {
             return;
         }
         inputRef.current.value = ""
-
-        // update chat history with new user message
-        setChatHistory(history => [...history, { role: "user", text: userMessage }]);
-
-        // bot message
-        setTimeout(() => {
-            setChatHistory((history) => [...history, { role: "model", text: "working on it ..." }]);
-            // call the function to generate the response
-            generateBotResponse([...chatHistory, { role: "user", text: userMessage }]);
-        }, 600);
+        sendUserMessage(userMessage);
     }
 
     return (
         <div className='chat'>
+            <Header dbCreated={dbCreated} onWorkWithDb={() => alert("Open DB editor")} />
+
             {hasPrompts === false ? (
                 <div className="chat-body">
                     <div className="empty-chat">
@@ -60,14 +78,11 @@ const Chat = () => {
                 <div className='chat-body'>
                     <div className="actual-chat">
                         <div className="chat-started">
-                            <div className="msg user-msg first-prompt">
-                                <p className="message-text">
-                                    {firstPrompt}
-                                </p>
-                            </div>
                             {chatHistory.map((chat, index) => (
                                 <ChatMessage key={index} chat={chat} />
                             ))}
+                            {/* dummy div to scroll to */}
+                            <div ref={chatEndRef} />
                         </div>
                     </div>
                     <div className="chat-footer">

@@ -8,10 +8,15 @@
     align-items: center;
     position: fixed;
     background-color: #fff;
+    display: flex;
 }
 
 h1 {
     font-size: 26px;
-    color:#165f47;
+    color:#075e54;
     margin:0;
+}
+
+button {
+    justify-items: flex-end;
 }

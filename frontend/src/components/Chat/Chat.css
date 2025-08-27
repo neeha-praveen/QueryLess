@@ -73,6 +73,7 @@
   padding: 16px;
   scrollbar-width: thin;
   scrollbar-color: #ddd3f9 transparent;
+  scroll-behavior: smooth;
 }
 
 /* messages */
@@ -84,7 +85,7 @@
 
 .msg.bot-msg{ justify-content:flex-start; }
 .msg.bot-msg .message-text{
-  background:#cdedb3;
+  background:#25d366;
   border-radius: 13px 13px 13px 3px;
 }
 
@@ -93,7 +94,7 @@
 }       /* push bubble to the right */
 
 .msg.user-msg .message-text{
-  background:#165f47;
+  background:#075e54;
   color:#fff;
   border-radius: 13px 13px 3px 13px;
 }
