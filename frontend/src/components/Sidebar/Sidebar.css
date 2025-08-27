@@ -5,7 +5,7 @@
     position: sticky;
     top: 0;
     align-self: flex-start;
-    background-color: #bee0c7;
+    background-color: #f0f7da;
     padding: 10px;
     padding-top: 15px;
 }
@@ -70,7 +70,7 @@
     padding-top: 2px;
     padding-bottom: 2px;
     font-weight: 500;
-    color:#266533;
+    color:#075e54;
     border: none;
     background: none;
     border-radius: 6px;
