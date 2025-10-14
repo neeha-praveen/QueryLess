@@ -1,8 +1,8 @@
 import './Sidebar.css'
 import React, { useState } from 'react'
-import { AlignJustify, CirclePlus, Search } from 'lucide-react';
+import { AlignJustify, CirclePlus, Search, LogOut } from 'lucide-react';
 
-const Sidebar = () => {
+const Sidebar = ({ onLogout }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     const toggleCollape = () => {
@@ -20,13 +20,13 @@ const Sidebar = () => {
                 <div className="sidebar-actions">
                     <div className="action">
                         <button className='action-btn'>
-                            <CirclePlus />
+                            <CirclePlus size={20} />
                             {isCollapsed === false && <span>New</span>}
                         </button>
                     </div>
                     <div className="action">
                         <button className='action-btn'>
-                            <Search />
+                            <Search size={20} />
                             {isCollapsed === false && <span>Search</span>}
                         </button>
                     </div>
@@ -48,6 +48,14 @@ const Sidebar = () => {
                     </div>
                 }
             </div>
+            {!isCollapsed && (
+                <div className="sidebar-footer">
+                    <button className='logout-btn' onClick={onLogout}>
+                        <LogOut size={20} />
+                        <span>Logout</span>
+                    </button>
+                </div>
+            )}
         </div>
     )
 }
