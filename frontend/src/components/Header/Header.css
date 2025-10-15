@@ -28,7 +28,7 @@ h1 {
     text-shadow: 0 2px 4px rgba(16, 185, 129, 0.1);
 }
 
-.header button {
+.work-db-btn {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
     font-weight: 600;
@@ -45,7 +45,7 @@ h1 {
     white-space: nowrap;
 }
 
-.header button::before {
+.work-db-btn::before {
     content: '';
     position: absolute;
     top: 0;
@@ -56,16 +56,16 @@ h1 {
     transition: left 0.6s;
 }
 
-.header button:hover::before {
+.work-db-btn:hover::before {
     left: 100%;
 }
 
-.header button:hover {
+.work-db-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
     background: linear-gradient(135deg, #059669 0%, #065f46 100%);
 }
 
-.header button:active {
+.work-db-btn:active {
     transform: translateY(0);
 }

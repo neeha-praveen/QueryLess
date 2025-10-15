@@ -5,7 +5,7 @@ import ChatMessage from './ChatMessage';
 import Header from '../Header/Header'
 import SchemaPreview from '../SchemaPreview/SchemaPreview';
 
-const Chat = () => {
+const Chat = ({ setActiveWorkspace }) => {
     const [hasPrompts, setHasPrompts] = useState(false);
     const [firstPrompt, setFirstPrompt] = useState(null);
     const [inputValue, setInputValue] = useState('');
@@ -64,6 +64,10 @@ const Chat = () => {
                             { role: "model", text: `✅ Database created! Schema: ${createData.schemaName}` }
                         ]);
                         setDbCreated(true);
+                        setActiveWorkspace({
+                            schema: createData.schemaName,
+                            table: data.schemaDef.tables[0]?.name || 'table1',
+                        });
                     } catch (err) {
                         setChatHistory(prev => [
                             ...prev,

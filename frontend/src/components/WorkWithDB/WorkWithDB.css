@@ -1,0 +1,5 @@
+.db-editor { padding: 20px; }
+.db-editor table { border-collapse: collapse; width: 100%; }
+.db-editor th, .db-editor td { border: 1px solid #ccc; padding: 6px; }
+.db-editor input { width: 100%; }
+.db-editor button { margin-top: 10px; padding: 6px 12px; }
