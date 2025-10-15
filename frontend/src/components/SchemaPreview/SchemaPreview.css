@@ -30,6 +30,8 @@ td {
     padding: 6px;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     font-size: 13px;
+    color:#333;
+    font-weight: 600;
 }
 
 tr {

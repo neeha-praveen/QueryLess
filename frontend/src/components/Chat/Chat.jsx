@@ -14,19 +14,6 @@ const Chat = () => {
     const chatEndRef = useRef(null);
     const [dbCreated, setDbCreated] = useState(false);
 
-
-    const sampleSchema = {
-        tableName: "students",
-        columns: [
-            { name: "id_no", type: "number" },
-            { name: "name", type: "string" },
-            { name: "dob", type: "date" },
-            { name: "course", type: "string" },
-            { name: "graduating_year", type: "number" },
-            { name: "starting_year", type: "number" },
-        ]
-    };
-
     // when new msg comes, it should scroll automatically
     useEffect(() => {
         if (chatEndRef.current) {
@@ -34,29 +21,71 @@ const Chat = () => {
         }
     }, [chatHistory]);
 
-    const generateBotResponse = (history) => {
-        return {
-            role: "model",
-            text: "Here's the proposed schema:",
-            schema: sampleSchema,
-            onConfirm: () => {
-                setChatHistory(prev => [
-                    ...prev,
-                    { role: "model", text: "Database created" }
-                ]);
-                setDbCreated(true);
-            }
-        };
+    const generateBotResponse = async (userMessage) => {
+        const token = localStorage.getItem("token");
+
+        try {
+            const res = await fetch("http://localhost:4000/api/schema/propose", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ prompt: userMessage })
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Schema proposal failed");
+
+            // backend returns { schemaDef, textSummary }
+            return {
+                role: "model",
+                text: data.textSummary,
+                schema: data.schemaDef,
+                onConfirm: async () => {
+                    try {
+                        const createRes = await fetch("http://localhost:4000/api/workspace/create", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Authorization": `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({
+                                name: data.schemaDef.tables[0]?.name || "newdb",
+                                schemaDef: data.schemaDef,
+                            }),
+                        });
+
+                        const createData = await createRes.json();
+                        if (!createRes.ok) throw new Error(createData.error || "Failed to create DB");
+
+                        setChatHistory(prev => [
+                            ...prev,
+                            { role: "model", text: `✅ Database created! Schema: ${createData.schemaName}` }
+                        ]);
+                        setDbCreated(true);
+                    } catch (err) {
+                        setChatHistory(prev => [
+                            ...prev,
+                            { role: "model", text: `❌ Error: ${err.message}` }
+                        ]);
+                    }
+                }
+            };
+        } catch (err) {
+            return {
+                role: "model",
+                text: `❌ Error: ${err.message}`,
+            };
+        }
     };
 
-    const sendUserMessage = (message) => {
+    const sendUserMessage = async (message) => {
         setChatHistory(prev => [...prev, { role: "user", text: message }]);
-
-        setTimeout(() => {
-            const botMsg = generateBotResponse();
-            setChatHistory(prev => [...prev, botMsg]);
-        }, 600);
+        const botMsg = await generateBotResponse(message);
+        setChatHistory(prev => [...prev, botMsg]);
     };
+
 
     const handleGenerate = () => {
         if (!firstPrompt) {
