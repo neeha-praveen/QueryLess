@@ -51,4 +51,89 @@ router.post('/create', auth, async (req, res) => {
   }
 });
 
+// Get all rows of a table
+router.get('/:schema/:table', auth, async (req, res) => {
+  const { schema, table } = req.params;
+  try {
+    const result = await pool.query(
+      `SELECT * FROM ${schema}.${table} LIMIT 100`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Fetch rows error', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Insert one row
+router.post('/:schema/:table', auth, async (req, res) => {
+  const { schema, table } = req.params;
+  const body = req.body; // object of column:value
+  try {
+    const cols = Object.keys(body);
+    const vals = Object.values(body);
+    const placeholders = cols.map((_, i) => `$${i + 1}`).join(', ');
+    const query = `
+      INSERT INTO ${schema}.${table}(${cols.join(', ')})
+      VALUES (${placeholders})
+      RETURNING *`;
+    const result = await pool.query(query, vals);
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Insert error', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update a row by id
+router.put('/:schema/:table/:id', auth, async (req, res) => {
+  const { schema, table, id } = req.params;
+  const body = req.body;
+  try {
+    const cols = Object.keys(body);
+    const vals = Object.values(body);
+    const sets = cols.map((c, i) => `${c} = $${i + 1}`).join(', ');
+    const query = `
+      UPDATE ${schema}.${table}
+      SET ${sets}
+      WHERE id = $${cols.length + 1}
+      RETURNING *`;
+    const result = await pool.query(query, [...vals, id]);
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Update error', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete row by id
+router.delete('/:schema/:table/:id', auth, async (req, res) => {
+  const { schema, table, id } = req.params;
+  try {
+    await pool.query(`DELETE FROM ${schema}.${table} WHERE id = $1`, [id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Delete error', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get table column names
+router.get('/:schema/:table/columns', auth, async (req, res) => {
+  const { schema, table } = req.params;
+  try {
+    const result = await pool.query(
+      `SELECT column_name
+       FROM information_schema.columns
+       WHERE table_schema = $1 AND table_name = $2
+       ORDER BY ordinal_position`,
+      [schema, table]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Column fetch error', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

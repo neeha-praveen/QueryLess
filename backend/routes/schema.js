@@ -38,8 +38,6 @@ router.post('/propose', auth, async (req, res) => {
             columns: [
               { name: 'id', type: 'serial', pk: true },
               { name: 'first_name', type: 'varchar(100)', notNull: true },
-              { name: 'last_name', type: 'varchar(100)' },
-              { name: 'department', type: 'varchar(100)' },
               { name: 'salary', type: 'numeric' }
             ]
           }

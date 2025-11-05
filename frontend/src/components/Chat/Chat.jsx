@@ -1,163 +1,193 @@
-import './Chat.css'
-import React, { useRef, useState, useEffect } from 'react'
-import { ArrowUp } from 'lucide-react'
+import './Chat.css';
+import React, { useRef, useState, useEffect } from 'react';
+import { ArrowUp } from 'lucide-react';
 import ChatMessage from './ChatMessage';
-import Header from '../Header/Header'
-import SchemaPreview from '../SchemaPreview/SchemaPreview';
+import Header from '../Header/Header';
+import { useNavigate } from 'react-router-dom';
 
-const Chat = ({ setActiveWorkspace }) => {
-    const [hasPrompts, setHasPrompts] = useState(false);
-    const [firstPrompt, setFirstPrompt] = useState(null);
-    const [inputValue, setInputValue] = useState('');
-    const inputRef = useRef();
-    const [chatHistory, setChatHistory] = useState([]);
-    const chatEndRef = useRef(null);
-    const [dbCreated, setDbCreated] = useState(false);
+const Chat = ({ setActiveWorkspace, activeWorkspace }) => {
+  const [hasPrompts, setHasPrompts] = useState(false);
+  const [firstPrompt, setFirstPrompt] = useState(null);
+  const [inputValue, setInputValue] = useState('');
+  const [chatHistory, setChatHistory] = useState([]);
+  const [dbCreated, setDbCreated] = useState(false);
+  const inputRef = useRef();
+  const chatEndRef = useRef(null);
+  const navigate = useNavigate();
 
-    // when new msg comes, it should scroll automatically
-    useEffect(() => {
-        if (chatEndRef.current) {
-            chatEndRef.current.scrollIntoView({ behavior: "smooth" });
-        }
-    }, [chatHistory]);
+  // auto-scroll to bottom
+  useEffect(() => {
+    if (chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+  }, [chatHistory]);
 
-    const generateBotResponse = async (userMessage) => {
-        const token = localStorage.getItem("token");
+  //  normal schema proposal
+  const generateBotResponse = async (userMessage) => {
+    const token = localStorage.getItem('token');
 
-        try {
-            const res = await fetch("http://localhost:4000/api/schema/propose", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({ prompt: userMessage })
+    try {
+      const res = await fetch('http://localhost:4000/api/schema/propose', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ prompt: userMessage }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Schema proposal failed');
+
+      return {
+        role: 'model',
+        text: data.textSummary || "Here's the proposed schema:",
+        schema: data.schemaDef,
+        onConfirm: async () => {
+          try {
+            const createRes = await fetch('http://localhost:4000/api/workspace/create', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                name: data.schemaDef.tables?.[0]?.name || 'newdb',
+                schemaDef: data.schemaDef,
+              }),
             });
 
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Schema proposal failed");
+            const createData = await createRes.json();
+            if (!createRes.ok) throw new Error(createData.error || 'Failed to create DB');
 
-            // backend returns { schemaDef, textSummary }
-            return {
-                role: "model",
-                text: data.textSummary,
-                schema: data.schemaDef,
-                onConfirm: async () => {
-                    try {
-                        const createRes = await fetch("http://localhost:4000/api/workspace/create", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                "Authorization": `Bearer ${token}`,
-                            },
-                            body: JSON.stringify({
-                                name: data.schemaDef.tables[0]?.name || "newdb",
-                                schemaDef: data.schemaDef,
-                            }),
-                        });
+            setChatHistory((prev) => [
+              ...prev,
+              { role: 'model', text: `✅ Database created! Schema: ${createData.schemaName}` },
+            ]);
 
-                        const createData = await createRes.json();
-                        if (!createRes.ok) throw new Error(createData.error || "Failed to create DB");
+            setDbCreated(true);
+            if (setActiveWorkspace)
+              setActiveWorkspace({
+                schema: createData.schemaName,
+                table: data.schemaDef.tables?.[0]?.name || 'table1',
+              });
 
-                        setChatHistory(prev => [
-                            ...prev,
-                            { role: "model", text: `✅ Database created! Schema: ${createData.schemaName}` }
-                        ]);
-                        setDbCreated(true);
-                        setActiveWorkspace({
-                            schema: createData.schemaName,
-                            table: data.schemaDef.tables[0]?.name || 'table1',
-                        });
-                    } catch (err) {
-                        setChatHistory(prev => [
-                            ...prev,
-                            { role: "model", text: `❌ Error: ${err.message}` }
-                        ]);
-                    }
-                }
-            };
-        } catch (err) {
-            return {
-                role: "model",
-                text: `❌ Error: ${err.message}`,
-            };
-        }
-    };
-
-    const sendUserMessage = async (message) => {
-        setChatHistory(prev => [...prev, { role: "user", text: message }]);
-        const botMsg = await generateBotResponse(message);
-        setChatHistory(prev => [...prev, botMsg]);
-    };
-
-
-    const handleGenerate = () => {
-        if (!firstPrompt) {
-            setFirstPrompt(inputValue);
-            sendUserMessage(inputValue);
-        }
-        setHasPrompts(true);
-    };
-
-    const handleFormSubmit = (e) => {
-        e.preventDefault();
-        const userMessage = inputRef.current.value.trim();
-        if (!userMessage) {
-            return;
-        }
-        inputRef.current.value = ""
-        sendUserMessage(userMessage);
+          } catch (err) {
+            setChatHistory((prev) => [...prev, { role: 'model', text: `❌ Error: ${err.message}` }]);
+          }
+        },
+      };
+    } catch (err) {
+      return { role: 'model', text: `❌ Error: ${err.message}` };
     }
+  };
 
-    return (
-        <div className='chat'>
-            <Header dbCreated={dbCreated} onWorkWithDb={() => alert("Open DB editor")} />
+  //  handle DB queries (after creation)
+  const handleDBQuery = async (message) => {
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch('http://localhost:4000/api/query/run', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          schema: activeWorkspace?.schema,
+          prompt: message,
+        }),
+      });
 
-            {hasPrompts === false ? (
-                <div className="chat-body">
-                    <div className="empty-chat">
-                        <h2>Create New</h2>
-                        <div className="input-wrap">
-                            <textarea
-                                placeholder='Describe the table you need... '
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                            />
-                        </div>
-                        <button onClick={handleGenerate}>Generate Database</button>
-                    </div>
-                </div>
-            ) : (
-                <div className='chat-body'>
-                    <div className="actual-chat">
-                        <div className="chat-started">
-                            {chatHistory.map((chat, index) => (
-                                <ChatMessage key={index} chat={chat} />
-                            ))}
-                            {/* dummy div to scroll to */}
-                            <div ref={chatEndRef} />
-                        </div>
-                    </div>
-                    <div className="chat-footer">
-                        <form
-                            action=""
-                            className="chat-form"
-                            onSubmit={handleFormSubmit}
-                        >
-                            <input
-                                type="text"
-                                placeholder='chat'
-                                className="message-input"
-                                required
-                                ref={inputRef}
-                            />
-                            <button className='send-btn'><ArrowUp /></button>
-                        </form>
-                    </div>
-                </div>
-            )}
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Query failed');
+
+      // show result rows in chat
+      const formatted =
+        data.rows && data.rows.length
+          ? JSON.stringify(data.rows, null, 2)
+          : data.text || `✅ ${data.rowCount || 0} rows affected`;
+
+      setChatHistory((prev) => [...prev, { role: 'model', text: formatted }]);
+    } catch (err) {
+      setChatHistory((prev) => [...prev, { role: 'model', text: `❌ ${err.message}` }]);
+    }
+  };
+
+  //  Decide what to do when user sends a message
+  const sendUserMessage = async (message) => {
+    setChatHistory((prev) => [...prev, { role: 'user', text: message }]);
+
+    if (dbCreated) {
+      // run SQL-like command
+      await handleDBQuery(message);
+    } else {
+      // still in schema design phase
+      const botMsg = await generateBotResponse(message);
+      setChatHistory((prev) => [...prev, botMsg]);
+    }
+  };
+
+  const handleGenerate = () => {
+    if (!firstPrompt) {
+      setFirstPrompt(inputValue);
+      sendUserMessage(inputValue);
+    }
+    setHasPrompts(true);
+  };
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    const userMessage = inputRef.current.value.trim();
+    if (!userMessage) return;
+    inputRef.current.value = '';
+    sendUserMessage(userMessage);
+  };
+
+  return (
+    <div className="chat">
+      <Header dbCreated={dbCreated} onWorkWithDb={() => navigate('/db')} />
+
+      {!hasPrompts ? (
+        <div className="chat-body">
+          <div className="empty-chat">
+            <h2>Create New</h2>
+            <div className="input-wrap">
+              <textarea
+                placeholder="Describe the table you need..."
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+              />
+            </div>
+            <button onClick={handleGenerate}>Generate Database</button>
+          </div>
         </div>
-    );
+      ) : (
+        <div className="chat-body">
+          <div className="actual-chat">
+            <div className="chat-started">
+              {chatHistory.map((chat, index) => (
+                <ChatMessage key={index} chat={chat} />
+              ))}
+              <div ref={chatEndRef} />
+            </div>
+          </div>
+
+          <div className="chat-footer">
+            <form className="chat-form" onSubmit={handleFormSubmit}>
+              <input
+                type="text"
+                placeholder="chat"
+                className="message-input"
+                required
+                ref={inputRef}
+              />
+              <button className="send-btn">
+                <ArrowUp />
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default Chat;

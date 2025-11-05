@@ -60,7 +60,7 @@ function App() {
         <div className="main-body">
           <Routes>
             {/* Chat route */}
-            <Route path="/" element={<Chat setActiveWorkspace={handleSetWorkspace} />} />
+            <Route path="/" element={<Chat setActiveWorkspace={handleSetWorkspace} activeWorkspace={activeWorkspace} />} />
 
             {/* DB Editor route */}
             <Route path="/db" element={activeWorkspace ? (
