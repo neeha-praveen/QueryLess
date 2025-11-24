@@ -1,6 +1,7 @@
 import React from 'react'
 import './Chat.css'
 import SchemaPreview from '../SchemaPreview/SchemaPreview'
+import QueryResultTable from '../QueryResult/QueryResultTable'
 
 const ChatMessage = ({ chat }) => {
     return (
@@ -9,6 +10,9 @@ const ChatMessage = ({ chat }) => {
                 <p>{chat.text}</p>
                 {chat.schema && (
                     <SchemaPreview schema={chat.schema} onConfirm={chat.onConfirm} />
+                )}
+                {chat.rows && (
+                    <QueryResultTable rows={chat.rows} />
                 )}
             </div>
         </div>
