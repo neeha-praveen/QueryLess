@@ -13,6 +13,7 @@ const embeddingsRoutes = require("./routes/embeddings");
 const vectorRoutes = require("./routes/vector");
 const aiRoutes = require("./routes/ai");
 const llmRoutes = require("./routes/llmRoutes");
+const agentRoutes = require("./routes/agentRoutes");
 
 const app = express();
 app.use(cors());
@@ -36,6 +37,7 @@ async function start() {
   app.use("/api/vector", vectorRoutes);
   app.use("/api/ai", aiRoutes);
   app.use("/api/llm", llmRoutes);
+  app.use("/api/agent", agentRoutes);
 
   app.listen(PORT, () => {
     console.log(`Server listening on http://localhost:${PORT}`);
