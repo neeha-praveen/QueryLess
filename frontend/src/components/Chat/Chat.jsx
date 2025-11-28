@@ -81,51 +81,66 @@ const Chat = ({ setActiveWorkspace, activeWorkspace }) => {
     };
 
     //  handle DB queries (after creation)
-    const handleDBQuery = async (message) => {
+    const handleAgentQuery = async (message) => {
         const token = localStorage.getItem("token");
+
+        if (!activeWorkspace?.schema) {
+            setChatHistory(prev => [...prev, {
+                role: "model",
+                text: "❌ No active workspace found. Please create a database first."
+            }]);
+            return;
+        }
+
         try {
-            const res = await fetch("http://localhost:4000/api/query/run", {
+            const res = await fetch("http://localhost:4000/api/agent/run", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    schema: activeWorkspace?.schema,
-                    prompt: message,
+                    message,
+                    schemaName: activeWorkspace.schema
                 }),
             });
 
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Query failed");
 
-            if (data.rows && data.rows.length > 0) {
-                // 🧠 show rows in table
-                setChatHistory((prev) => [...prev, { role: "model", text: "Query result:", rows: data.rows }]);
-            } else {
-                setChatHistory((prev) => [
-                    ...prev,
-                    { role: "model", text: data.text || `✅ ${data.rowCount || 0} rows affected` },
-                ]);
+            if (!res.ok) {
+                throw new Error(data.error || "Agent query failed");
             }
+
+            // Display reply
+            setChatHistory(prev => [
+                ...prev,
+                {
+                    role: "model",
+                    text: data.answer || "Executed.",
+                    sql: data.sql || data.originalSQL,
+                    rows: data.rows || [],
+                }
+            ]);
+
         } catch (err) {
-            setChatHistory((prev) => [...prev, { role: "model", text: `❌ ${err.message}` }]);
+            setChatHistory(prev => [
+                ...prev,
+                { role: "model", text: `❌ Agent Error: ${err.message}` }
+            ]);
         }
     };
-
 
     //  Decide what to do when user sends a message
     const sendUserMessage = async (message) => {
         setChatHistory((prev) => [...prev, { role: 'user', text: message }]);
 
         if (dbCreated) {
-            // run SQL-like command
-            await handleDBQuery(message);
+            await handleAgentQuery(message);
         } else {
-            // still in schema design phase
             const botMsg = await generateBotResponse(message);
-            setChatHistory((prev) => [...prev, botMsg]);
+            setChatHistory(prev => [...prev, botMsg]);
         }
+
     };
 
     const handleGenerate = () => {
